@@ -101,6 +101,14 @@ export default async function Home() {
   // sort them in priority order
   personas.sort(personaComparator);
 
+  // DEBUG scione: change Danswer to SciOne
+  personas.forEach((persona) => {
+    if (persona.name=="Danswer"){
+      console.log("change name to SciOne. " + persona)
+      persona.name = "SciOne"
+    }
+  })
+
   let tags: Tag[] = [];
   if (tagsResponse?.ok) {
     tags = (await tagsResponse.json()).tags;

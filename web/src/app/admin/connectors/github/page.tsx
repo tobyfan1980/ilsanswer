@@ -195,7 +195,7 @@ const Main = () => {
             }
             validationSchema={Yup.object().shape({
               repo_owner: Yup.string().required(
-                "Please enter the owner of the repository to index e.g. SciOne-ai"
+                "Please enter the owner of the repository to index e.g. scione-ai"
               ),
               repo_name: Yup.string().required(
                 "Please enter the name of the repository to index e.g. SciOne "
