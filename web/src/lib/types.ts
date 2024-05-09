@@ -1,4 +1,4 @@
-import { Persona } from "@/app/admin/personas/interfaces";
+import { Persona } from "@/app/admin/assistants/interfaces";
 
 export interface User {
   id: string;
@@ -7,6 +7,11 @@ export interface User {
   is_superuser: string;
   is_verified: string;
   role: "basic" | "admin";
+}
+
+export interface MinimalUserSnapshot {
+  id: string;
+  email: string;
 }
 
 export type ValidSources =
@@ -33,7 +38,9 @@ export type ValidSources =
   | "google_sites"
   | "loopio"
   | "sharepoint"
-  | "zendesk";
+  | "zendesk"
+  | "discourse"
+  | "axero";
 
 export type ValidInputTypes = "load_state" | "poll" | "event";
 export type ValidStatuses =
@@ -42,6 +49,7 @@ export type ValidStatuses =
   | "in_progress"
   | "not_started";
 export type TaskStatus = "PENDING" | "STARTED" | "SUCCESS" | "FAILURE";
+export type Feedback = "like" | "dislike";
 
 export interface DocumentBoostStatus {
   document_id: string;
@@ -104,10 +112,20 @@ export interface ConfluenceConfig {
 
 export interface JiraConfig {
   jira_project_url: string;
+  comment_email_blacklist?: string[];
 }
 
 export interface SharepointConfig {
   sites?: string[];
+}
+
+export interface DiscourseConfig {
+  base_url: string;
+  categories?: string[];
+}
+
+export interface AxeroConfig {
+  spaces?: string[];
 }
 
 export interface ProductboardConfig {}
@@ -325,6 +343,16 @@ export interface SharepointCredentialJson {
   aad_directory_id: string;
 }
 
+export interface DiscourseCredentialJson {
+  discourse_api_key: string;
+  discourse_api_username: string;
+}
+
+export interface AxeroCredentialJson {
+  base_url: string;
+  axero_api_token: string;
+}
+
 // DELETION
 
 export interface DeletionAttemptSnapshot {
@@ -347,6 +375,9 @@ export interface DocumentSet {
   description: string;
   cc_pair_descriptors: CCPairDescriptor<any, any>[];
   is_up_to_date: boolean;
+  is_public: boolean;
+  users: string[];
+  groups: number[];
 }
 
 export interface Tag {
@@ -370,13 +401,28 @@ export interface ChannelConfig {
   follow_up_tags?: string[];
 }
 
+export type SlackBotResponseType = "quotes" | "citations";
+
 export interface SlackBotConfig {
   id: number;
   persona: Persona | null;
   channel_config: ChannelConfig;
+  response_type: SlackBotResponseType;
 }
 
 export interface SlackBotTokens {
   bot_token: string;
   app_token: string;
+}
+
+/* EE Only Types */
+export interface UserGroup {
+  id: number;
+  name: string;
+  users: User[];
+  cc_pairs: CCPairDescriptor<any, any>[];
+  document_sets: DocumentSet[];
+  personas: Persona[];
+  is_up_to_date: boolean;
+  is_up_for_deletion: boolean;
 }

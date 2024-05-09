@@ -12,13 +12,30 @@ from danswer.utils.logger import setup_logger
 logger = setup_logger()
 
 
+def check_tag_validity(tag_key: str, tag_value: str) -> bool:
+    """If a tag is too long, it should not be used (it will cause an error in Postgres
+    as the unique constraint can only apply to entries that are less than 2704 bytes).
+
+    Additionally, extremely long tags are not really usable / useful."""
+    if len(tag_key) + len(tag_value) > 255:
+        logger.error(
+            f"Tag with key '{tag_key}' and value '{tag_value}' is too long, cannot be used"
+        )
+        return False
+
+    return True
+
+
 def create_or_add_document_tag(
     tag_key: str,
     tag_value: str,
     source: DocumentSource,
     document_id: str,
     db_session: Session,
-) -> Tag:
+) -> Tag | None:
+    if not check_tag_validity(tag_key, tag_value):
+        return None
+
     document = db_session.get(Document, document_id)
     if not document:
         raise ValueError("Invalid Document, cannot attach Tags")
@@ -48,6 +65,12 @@ def create_or_add_document_tag_list(
     document_id: str,
     db_session: Session,
 ) -> list[Tag]:
+    valid_tag_values = [
+        tag_value for tag_value in tag_values if check_tag_validity(tag_key, tag_value)
+    ]
+    if not valid_tag_values:
+        return []
+
     document = db_session.get(Document, document_id)
     if not document:
         raise ValueError("Invalid Document, cannot attach Tags")
@@ -94,12 +117,11 @@ def get_tags_by_value_prefix_for_source_types(
     return list(tags)
 
 
-def delete_document_tags_for_documents(
+def delete_document_tags_for_documents__no_commit(
     document_ids: list[str], db_session: Session
 ) -> None:
     stmt = delete(Document__Tag).where(Document__Tag.document_id.in_(document_ids))
     db_session.execute(stmt)
-    db_session.commit()
 
     orphan_tags_query = (
         select(Tag.id)
@@ -113,4 +135,3 @@ def delete_document_tags_for_documents(
     if orphan_tags:
         delete_orphan_tags_stmt = delete(Tag).where(Tag.id.in_(orphan_tags))
         db_session.execute(delete_orphan_tags_stmt)
-        db_session.commit()
