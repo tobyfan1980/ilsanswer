@@ -36,13 +36,8 @@ export function NoSourcesModal() {
             <Text>
               Or, if you&apos;re looking for a pure ChatGPT-like experience
               without any organization specific knowledge, then you can head
-<<<<<<< HEAD
               over to the Chat page and start chatting with SciOne right away!
-            </p>
-=======
-              over to the Chat page and start chatting with Danswer right away!
             </Text>
->>>>>>> ffea0413981f8c92507a6ce1fc498d5a754b691d
             <Link href="/chat">
               <Button className="mt-3" size="xs" icon={FiMessageSquare}>
                 Start Chatting!

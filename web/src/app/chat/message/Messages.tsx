@@ -74,13 +74,9 @@ export const AIMessage = ({
               </div>
             </div>
 
-<<<<<<< HEAD
-            <div className="font-bold text-emphasis ml-2 my-auto">SciOne</div>
-=======
             <div className="font-bold text-emphasis ml-2 my-auto">
-              {personaName || "Danswer"}
+              {personaName || "SciOne"}
             </div>
->>>>>>> ffea0413981f8c92507a6ce1fc498d5a754b691d
 
             {query === undefined &&
               hasDocs &&

@@ -114,13 +114,9 @@ export function _WelcomeModal({ user }: { user: User | null }) {
               Step 2: Connect Data Sources
             </Text>
             <div>
-<<<<<<< HEAD
-              <p>
-                Connectors are the way that SciOne gets data from your
-=======
+                
               <Text>
-                Connectors are the way that Danswer gets data from your
->>>>>>> ffea0413981f8c92507a6ce1fc498d5a754b691d
+                Connectors are the way that SciOne gets data from your
                 organization&apos;s various data sources. Once setup, we&apos;ll
                 automatically sync data from your apps and docs into SciOne, so
                 you can search through all of them in one place.
@@ -153,31 +149,7 @@ export function _WelcomeModal({ user }: { user: User | null }) {
           <BackButton behaviorOverride={() => setSelectedFlow(null)} />
 
           <div className="mt-3">
-<<<<<<< HEAD
-            <div>
-              To start using SciOne as a secure ChatGPT, we just need to
-              configure our LLM!
-              <br />
-              <br />
-              SciOne supports connections with a wide range of LLMs, including
-              self-hosted open-source LLMs. For more details, check out the{" "}
-              <a
-                className="text-link"
-                href="https://docs.danswer.dev/gen_ai_configs/overview"
-              >
-                documentation
-              </a>
-              .
-              <br />
-              <br />
-              If you haven&apos;t done anything special with the Gen AI configs,
-              then we default to use OpenAI.
-            </div>
-
-            <Text className="font-bold mt-6 mb-2 flex">
-=======
             <Text className="font-bold flex">
->>>>>>> ffea0413981f8c92507a6ce1fc498d5a754b691d
               {apiKeyVerified && (
                 <FiCheckCircle className="my-auto mr-2 text-success" />
               )}
@@ -248,11 +220,7 @@ export function _WelcomeModal({ user }: { user: User | null }) {
       body = (
         <>
           <div>
-<<<<<<< HEAD
-            <p>How are you planning on using SciOne?</p>
-=======
-            <Text>How are you planning on using Danswer?</Text>
->>>>>>> ffea0413981f8c92507a6ce1fc498d5a754b691d
+            <Text>How are you planning on using SciOne?</Text>
           </div>
           <Divider />
           <UsageTypeSection
