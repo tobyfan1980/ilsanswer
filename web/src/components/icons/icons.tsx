@@ -51,7 +51,11 @@ import hubSpotIcon from "../../../public/HubSpot.png";
 import document360Icon from "../../../public/Document360.png";
 import googleSitesIcon from "../../../public/GoogleSites.png";
 import zendeskIcon from "../../../public/Zendesk.svg";
+import dropboxIcon from "../../../public/Dropbox.png";
 import sharepointIcon from "../../../public/Sharepoint.png";
+import teamsIcon from "../../../public/Teams.png";
+import mediawikiIcon from "../../../public/MediaWiki.svg";
+import wikipediaIcon from "../../../public/Wikipedia.svg";
 import discourseIcon from "../../../public/Discourse.png";
 import { FaRobot } from "react-icons/fa";
 
@@ -535,6 +539,18 @@ export const SharepointIcon = ({
   </div>
 );
 
+export const TeamsIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => (
+  <div
+    style={{ width: `${size}px`, height: `${size}px` }}
+    className={`w-[${size}px] h-[${size}px] ` + className}
+  >
+    <Image src={teamsIcon} alt="Logo" width="96" height="96" />
+  </div>
+);
+
 export const GongIcon = ({
   size = 16,
   className = defaultTailwindCSS,
@@ -602,6 +618,18 @@ export const ZendeskIcon = ({
   </div>
 );
 
+export const DropboxIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => (
+  <div
+    style={{ width: `${size}px`, height: `${size}px` }}
+    className={`w-[${size}px] h-[${size}px] ` + className}
+  >
+    <Image src={dropboxIcon} alt="Logo" width="96" height="96" />
+  </div>
+);
+
 export const DiscourseIcon = ({
   size = 16,
   className = defaultTailwindCSS,
@@ -623,5 +651,29 @@ export const AxeroIcon = ({
     className={`w-[${size}px] h-[${size}px] ` + className}
   >
     <Image src="/Axero.jpeg" alt="Logo" width="96" height="96" />
+  </div>
+);
+
+export const MediaWikiIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => (
+  <div
+    style={{ width: `${size}px`, height: `${size}px` }}
+    className={`w-[${size}px] h-[${size}px] ` + className}
+  >
+    <Image src={mediawikiIcon} alt="Logo" width="96" height="96" />
+  </div>
+);
+
+export const WikipediaIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => (
+  <div
+    style={{ width: `${size}px`, height: `${size}px` }}
+    className={`w-[${size}px] h-[${size}px] ` + className}
+  >
+    <Image src={wikipediaIcon} alt="Logo" width="96" height="96" />
   </div>
 );

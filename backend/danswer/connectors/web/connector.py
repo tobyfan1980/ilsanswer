@@ -22,12 +22,12 @@ from danswer.configs.app_configs import WEB_CONNECTOR_OAUTH_CLIENT_SECRET
 from danswer.configs.app_configs import WEB_CONNECTOR_OAUTH_TOKEN_URL
 from danswer.configs.app_configs import WEB_CONNECTOR_VALIDATE_URLS
 from danswer.configs.constants import DocumentSource
-from danswer.connectors.cross_connector_utils.file_utils import read_pdf_file
-from danswer.connectors.cross_connector_utils.html_utils import web_html_cleanup
 from danswer.connectors.interfaces import GenerateDocumentsOutput
 from danswer.connectors.interfaces import LoadConnector
 from danswer.connectors.models import Document
 from danswer.connectors.models import Section
+from danswer.file_processing.extract_file_text import pdf_to_text
+from danswer.file_processing.html_utils import web_html_cleanup
 from danswer.utils.logger import setup_logger
 
 logger = setup_logger()
@@ -145,10 +145,16 @@ def extract_urls_from_sitemap(sitemap_url: str) -> list[str]:
     response.raise_for_status()
 
     soup = BeautifulSoup(response.content, "html.parser")
-    return [
+    result = [
         _ensure_absolute_url(sitemap_url, loc_tag.text)
         for loc_tag in soup.find_all("loc")
     ]
+    if not result:
+        raise ValueError(
+            f"No URLs found in sitemap {sitemap_url}. Try using the 'single' or 'recursive' scraping options instead."
+        )
+
+    return result
 
 
 def _ensure_absolute_url(source_url: str, maybe_relative_url: str) -> str:
@@ -214,6 +220,10 @@ class WebConnector(LoadConnector):
         and converts them into documents"""
         visited_links: set[str] = set()
         to_visit: list[str] = self.to_visit_list
+
+        if not to_visit:
+            raise ValueError("No URLs to visit")
+
         base_url = to_visit[0]  # For the recursive case
         doc_batch: list[Document] = []
 
@@ -247,9 +257,7 @@ class WebConnector(LoadConnector):
                 if current_url.split(".")[-1] == "pdf":
                     # PDF files are not checked for links
                     response = requests.get(current_url)
-                    page_text = read_pdf_file(
-                        file=io.BytesIO(response.content), file_name=current_url
-                    )
+                    page_text = pdf_to_text(file=io.BytesIO(response.content))
 
                     doc_batch.append(
                         Document(

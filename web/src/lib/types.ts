@@ -1,5 +1,9 @@
 import { Persona } from "@/app/admin/assistants/interfaces";
 
+export interface UserPreferences {
+  chosen_assistants: number[] | null;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -7,6 +11,7 @@ export interface User {
   is_superuser: string;
   is_verified: string;
   role: "basic" | "admin";
+  preferences: UserPreferences;
 }
 
 export interface MinimalUserSnapshot {
@@ -37,10 +42,14 @@ export type ValidSources =
   | "file"
   | "google_sites"
   | "loopio"
+  | "dropbox"
   | "sharepoint"
+  | "teams"
   | "zendesk"
   | "discourse"
-  | "axero";
+  | "axero"
+  | "wikipedia"
+  | "mediawiki";
 
 export type ValidInputTypes = "load_state" | "poll" | "event";
 export type ValidStatuses =
@@ -119,6 +128,10 @@ export interface SharepointConfig {
   sites?: string[];
 }
 
+export interface TeamsConfig {
+  teams?: string[];
+}
+
 export interface DiscourseConfig {
   base_url: string;
   categories?: string[];
@@ -126,6 +139,10 @@ export interface DiscourseConfig {
 
 export interface AxeroConfig {
   spaces?: string[];
+}
+
+export interface TeamsConfig {
+  teams?: string[];
 }
 
 export interface ProductboardConfig {}
@@ -178,6 +195,22 @@ export interface GoogleSitesConfig {
 }
 
 export interface ZendeskConfig {}
+
+export interface DropboxConfig {}
+
+export interface MediaWikiBaseConfig {
+  connector_name: string;
+  language_code: string;
+  categories?: string[];
+  pages?: string[];
+  recurse_depth?: number;
+}
+
+export interface MediaWikiConfig extends MediaWikiBaseConfig {
+  hostname: string;
+}
+
+export interface WikipediaConfig extends MediaWikiBaseConfig {}
 
 export interface IndexAttemptSnapshot {
   id: number;
@@ -337,10 +370,20 @@ export interface ZendeskCredentialJson {
   zendesk_token: string;
 }
 
+export interface DropboxCredentialJson {
+  dropbox_access_token: string;
+}
+
 export interface SharepointCredentialJson {
-  aad_client_id: string;
-  aad_client_secret: string;
-  aad_directory_id: string;
+  sp_client_id: string;
+  sp_client_secret: string;
+  sp_directory_id: string;
+}
+
+export interface TeamsCredentialJson {
+  teams_client_id: string;
+  teams_client_secret: string;
+  teams_directory_id: string;
 }
 
 export interface DiscourseCredentialJson {
@@ -352,6 +395,9 @@ export interface AxeroCredentialJson {
   base_url: string;
   axero_api_token: string;
 }
+
+export interface MediaWikiCredentialJson {}
+export interface WikipediaCredentialJson extends MediaWikiCredentialJson {}
 
 // DELETION
 

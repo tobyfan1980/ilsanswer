@@ -27,13 +27,13 @@ from danswer.configs.app_configs import APP_PORT
 from danswer.configs.app_configs import AUTH_TYPE
 from danswer.configs.app_configs import DISABLE_GENERATIVE_AI
 from danswer.configs.app_configs import DISABLE_INDEX_UPDATE_ON_SWAP
+from danswer.configs.app_configs import LOG_ENDPOINT_LATENCY
 from danswer.configs.app_configs import OAUTH_CLIENT_ID
 from danswer.configs.app_configs import OAUTH_CLIENT_SECRET
 from danswer.configs.app_configs import USER_AUTH_SECRET
 from danswer.configs.app_configs import WEB_DOMAIN
 from danswer.configs.chat_configs import MULTILINGUAL_QUERY_EXPANSION
 from danswer.configs.constants import AuthType
-from danswer.db.chat import delete_old_default_personas
 from danswer.db.connector import create_initial_default_connector
 from danswer.db.connector_credential_pair import associate_default_cc_pair
 from danswer.db.connector_credential_pair import get_connector_credential_pairs
@@ -42,12 +42,13 @@ from danswer.db.credentials import create_initial_public_credential
 from danswer.db.embedding_model import get_current_db_embedding_model
 from danswer.db.embedding_model import get_secondary_db_embedding_model
 from danswer.db.engine import get_sqlalchemy_engine
+from danswer.db.engine import warm_up_connections
 from danswer.db.index_attempt import cancel_indexing_attempts_past_model
 from danswer.db.index_attempt import expire_index_attempts
+from danswer.db.persona import delete_old_default_personas
 from danswer.db.swap_index import check_index_swap
 from danswer.document_index.factory import get_default_document_index
-from danswer.dynamic_configs.port_configs import port_api_key_to_postgres
-from danswer.dynamic_configs.port_configs import port_filesystem_to_postgres
+from danswer.llm.llm_initialization import load_llm_providers
 from danswer.search.retrieval.search_runner import download_nltk_data
 from danswer.search.search_nlp_models import warm_up_encoders
 from danswer.server.auth_check import check_router_auth
@@ -62,6 +63,7 @@ from danswer.server.features.folder.api import router as folder_router
 from danswer.server.features.persona.api import admin_router as admin_persona_router
 from danswer.server.features.persona.api import basic_router as persona_router
 from danswer.server.features.prompt.api import basic_router as prompt_router
+from danswer.server.features.tool.api import router as tool_router
 from danswer.server.gpts.api import router as gpts_router
 from danswer.server.manage.administrative import router as admin_router
 from danswer.server.manage.get_state import router as state_router
@@ -70,6 +72,7 @@ from danswer.server.manage.llm.api import basic_router as llm_router
 from danswer.server.manage.secondary_index import router as secondary_index_router
 from danswer.server.manage.slack_bot import router as slack_bot_management_router
 from danswer.server.manage.users import router as user_router
+from danswer.server.middleware.latency_logging import add_latency_logging_middleware
 from danswer.server.query_and_chat.chat_backend import router as chat_router
 from danswer.server.query_and_chat.query_backend import (
     admin_router as admin_query_router,
@@ -77,6 +80,9 @@ from danswer.server.query_and_chat.query_backend import (
 from danswer.server.query_and_chat.query_backend import basic_router as query_router
 from danswer.server.settings.api import admin_router as settings_admin_router
 from danswer.server.settings.api import basic_router as settings_router
+from danswer.tools.built_in_tools import auto_add_search_tool_to_personas
+from danswer.tools.built_in_tools import load_builtin_tools
+from danswer.tools.built_in_tools import refresh_built_in_tools_cache
 from danswer.utils.logger import setup_logger
 from danswer.utils.telemetry import optional_telemetry
 from danswer.utils.telemetry import RecordType
@@ -162,17 +168,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
             f"Using multilingual flow with languages: {MULTILINGUAL_QUERY_EXPANSION}"
         )
 
-    try:
-        port_filesystem_to_postgres()
-    except Exception:
-        logger.debug(
-            "Skipping port of persistent volumes. Maybe these have already been removed?"
-        )
-
-    try:
-        port_api_key_to_postgres()
-    except Exception as e:
-        logger.debug(f"Failed to port API keys. Exception: {e}. Continuing...")
+    # fill up Postgres connection pools
+    await warm_up_connections()
 
     with Session(engine) as db_session:
         check_index_swap(db_session=db_session)
@@ -209,9 +206,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         create_initial_default_connector(db_session)
         associate_default_cc_pair(db_session)
 
+        logger.info("Loading LLM providers from env variables")
+        load_llm_providers(db_session)
+
         logger.info("Loading default Prompts and Personas")
         delete_old_default_personas(db_session)
         load_chat_yamls()
+
+        logger.info("Loading built-in tools")
+        load_builtin_tools(db_session)
+        refresh_built_in_tools_cache(db_session)
+        auto_add_search_tool_to_personas(db_session)
 
         logger.info("Verifying Document Index(s) is/are available.")
         document_index = get_default_document_index(
@@ -271,6 +276,7 @@ def get_application() -> FastAPI:
     include_router_with_global_prefix_prepended(application, persona_router)
     include_router_with_global_prefix_prepended(application, admin_persona_router)
     include_router_with_global_prefix_prepended(application, prompt_router)
+    include_router_with_global_prefix_prepended(application, tool_router)
     include_router_with_global_prefix_prepended(application, state_router)
     include_router_with_global_prefix_prepended(application, danswer_api_router)
     include_router_with_global_prefix_prepended(application, gpts_router)
@@ -352,6 +358,8 @@ def get_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    if LOG_ENDPOINT_LATENCY:
+        add_latency_logging_middleware(application, logger)
 
     # Ensure all routes have auth enabled or are explicitly marked as public
     check_router_auth(application)
